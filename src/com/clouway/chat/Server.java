@@ -20,17 +20,51 @@ public class Server {
 
   private ServerSocket serversocket;
 
- public Server(List<Display> displayList){
+  public Server(List<Display> displayList) {
 
-   this.displayList=displayList;
+    this.displayList = displayList;
 
- }
+  }
 
- public void startServer(int port) throws IOException {
+  public void startServer(int port) throws IOException {
+
+    serversocket = new ServerSocket(port);
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
 
 
- }
+        Socket clientSocket = null;
 
+        try {
+
+          clientSocket = serversocket.accept();
+
+          clientList.add(clientSocket);
+
+          for (Display display : displayList) {
+
+            display.show("Connected");
+
+          }
+
+        } catch (IOException ignored) {
+        }
+
+
+      }
+    }).start();
+
+
+  }
+
+
+  public void stopServer() throws IOException {
+
+    serversocket.close();
+
+  }
 
 
 }
