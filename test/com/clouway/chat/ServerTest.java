@@ -47,7 +47,7 @@ public class ServerTest {
 
 
   @Test
-  public void serverNotifiesClientAboutTotalNumberOfPreviousConnectedClients() throws IOException, InterruptedException {
+  public void serverNotifiesThereAreNoPreviousConnections() throws IOException, InterruptedException {
 
     Display mockedDisplay = mock(Display.class);
 
@@ -72,7 +72,7 @@ public class ServerTest {
 
           while(scan.hasNext()){
 
-           receivedMessage=scan.next();
+           receivedMessage=scan.nextLine();
 
           }
 
@@ -81,9 +81,9 @@ public class ServerTest {
       }
     }).start();
 
-    Thread.sleep(1000);
+    Thread.sleep(5000);
 
-    assertThat(receivedMessage, is("There are 0 connected users"));
+    assertThat(receivedMessage, is("There are 0 connected users."));
 
 
   }

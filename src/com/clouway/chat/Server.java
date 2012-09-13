@@ -2,6 +2,7 @@ package com.clouway.chat;
 
 
 import com.google.common.collect.Lists;
+import sun.awt.windows.ThemeReader;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -46,13 +47,22 @@ public class Server {
 
             clientSocket = serversocket.accept();
 
+            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
+
+            writer.println("There are " + clientList.size() +  " connected users.");
+
+            writer.flush();
+
             clientList.add(clientSocket);
+
+
 
             for (Display display : displayList) {
 
               display.show("Connected");
 
             }
+
 
 
           }
