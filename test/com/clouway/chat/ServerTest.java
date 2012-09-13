@@ -47,7 +47,6 @@ public class ServerTest {
     server = new Server(displayList);
 
     server.startServer(1910);
-
   }
 
 
@@ -73,30 +72,13 @@ public class ServerTest {
 
     initializeClients(1);
 
-    new Thread(new Runnable() {
+    checkMessageOfClient(0);
 
-      @Override
-
-      public void run() {
-
-        try {
-
-          Scanner scan = new Scanner(clientList.get(0).getInputStream());
-
-          while(scan.hasNext()){
-
-           receivedMessage=scan.nextLine();
-
-          }
-
-
-
-        } catch (IOException ignored) {}
-
-      }
-    }).start();
     Thread.sleep(2000);
-    assertThat(receivedMessage, is("There are 0 connected uses."));
+
+    assertThat(receivedMessage, is("There are 0 connected users."));
+
+    server.stopServer();
   }
 
 
@@ -105,30 +87,13 @@ public class ServerTest {
 
    initializeClients(5);
 
-   new Thread(new Runnable() {
-
-     @Override
-
-     public void run() {
-
-       try {
-
-         Scanner scan = new Scanner(clientList.get(4).getInputStream());
-
-         while(scan.hasNext()){
-
-           receivedMessage=scan.nextLine();
-
-         }
-
-       } catch (IOException ignored) {}
-
-     }
-   }).start();
+   checkMessageOfClient(3);
 
    Thread.sleep(2000);
 
-   assertThat(receivedMessage, is("There are 4 connected users."));
+   assertThat(receivedMessage, is("There are 3 connected users."));
+
+   server.stopServer();
 
  }
 
@@ -145,12 +110,32 @@ public class ServerTest {
 
   }
 
+  private void checkMessageOfClient(final int clientNumber){
+
+    new Thread(new Runnable() {
+
+      @Override
+
+      public void run() {
+
+        try {
+
+          Scanner scan = new Scanner(clientList.get(clientNumber).getInputStream());
+
+          while(scan.hasNext()){
+
+            receivedMessage=scan.nextLine();
+
+          }
+
+        } catch (IOException ignored) {}
+
+      }
+    }).start();
 
 
 
-
-
-
+  }
 
 
 }
