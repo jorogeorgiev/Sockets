@@ -1,5 +1,7 @@
 package com.clouway.chat;
 
+import com.google.common.collect.Lists;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -20,24 +22,43 @@ import static org.mockito.Mockito.verify;
  */
 public class ServerTest {
 
+
+  private List<Display> displayList = new ArrayList<Display>();
+
+  private Display mockedDisplay;
+
   private String receivedMessage;
+
+  private Server server;
+
+  private List<Socket> clientList ;
+
+
+
+  @Before
+  public void setUp() throws IOException {
+
+    clientList = Lists.newLinkedList();
+
+    mockedDisplay = mock(Display.class);
+
+    displayList.add(mockedDisplay);
+
+    server = new Server(displayList);
+
+    server.startServer(1910);
+
+  }
+
+
+
+
+
 
   @Test
   public void serverAcceptMultiConnections() throws IOException, InterruptedException {
 
-    Display mockedDisplay = mock(Display.class);
-
-    List<Display> displayList = new ArrayList<Display>();
-
-    displayList.add(mockedDisplay);
-
-    Server  server = new Server(displayList);
-
-    server.startServer(1910);
-
-    Socket client  = new Socket("localhost",1910);
-
-    Socket client2 = new Socket("localhost",1910);
+    initializeClients(2);
 
     verify(mockedDisplay,times(2)).show("Connected");
 
@@ -46,20 +67,11 @@ public class ServerTest {
   }
 
 
+
   @Test
   public void serverNotifiesThereAreNoPreviousConnections() throws IOException, InterruptedException {
 
-    Display mockedDisplay = mock(Display.class);
-
-    List<Display> displayList = new ArrayList<Display>();
-
-    displayList.add(mockedDisplay);
-
-    Server  server = new Server(displayList);
-
-    server.startServer(1910);
-
-    final Socket client = new Socket("localhost" , 1910);
+    initializeClients(1);
 
     new Thread(new Runnable() {
 
@@ -68,7 +80,8 @@ public class ServerTest {
       public void run() {
 
         try {
-          Scanner scan = new Scanner(client.getInputStream());
+
+          Scanner scan = new Scanner(clientList.get(0).getInputStream());
 
           while(scan.hasNext()){
 
@@ -87,6 +100,19 @@ public class ServerTest {
 
 
   }
+
+  private void initializeClients(int clientNumber) throws IOException {
+
+    for(int i=0;i<clientNumber;i++){
+
+      Socket client  = new Socket("localhost",1910);
+
+      clientList.add(client);
+
+    }
+
+  }
+
 
 
 
