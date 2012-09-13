@@ -31,21 +31,27 @@ public class Server {
     serversocket = new ServerSocket(port);
 
     new Thread(new Runnable() {
+
       @Override
+
       public void run() {
 
 
-        Socket clientSocket = null;
+        Socket clientSocket;
 
         try {
 
-          clientSocket = serversocket.accept();
+          while (!Thread.currentThread().isInterrupted()) {
 
-          clientList.add(clientSocket);
+            clientSocket = serversocket.accept();
 
-          for (Display display : displayList) {
+            clientList.add(clientSocket);
 
-            display.show("Connected");
+            for (Display display : displayList) {
+
+              display.show("Connected");
+
+            }
 
           }
 

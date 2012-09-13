@@ -32,8 +32,6 @@ public class ServerTest {
 
     Socket client  = new Socket("localhost",1910);
 
-    Thread.sleep(10);
-
     Socket client2 = new Socket("localhost",1910);
 
     verify(mockedDisplay,times(2)).show("Connected");
