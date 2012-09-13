@@ -89,17 +89,49 @@ public class ServerTest {
 
           }
 
+
+
         } catch (IOException ignored) {}
 
       }
     }).start();
-
-    Thread.sleep(5000);
-
-    assertThat(receivedMessage, is("There are 0 connected users."));
-
-
+    Thread.sleep(2000);
+    assertThat(receivedMessage, is("There are 0 connected uses."));
   }
+
+
+ @Test
+ public void serverNotifiesClientAboutTotalCountConnectedCLients() throws IOException, InterruptedException {
+
+   initializeClients(5);
+
+   new Thread(new Runnable() {
+
+     @Override
+
+     public void run() {
+
+       try {
+
+         Scanner scan = new Scanner(clientList.get(4).getInputStream());
+
+         while(scan.hasNext()){
+
+           receivedMessage=scan.nextLine();
+
+         }
+
+       } catch (IOException ignored) {}
+
+     }
+   }).start();
+
+   Thread.sleep(2000);
+
+   assertThat(receivedMessage, is("There are 4 connected users."));
+
+ }
+
 
   private void initializeClients(int clientNumber) throws IOException {
 
@@ -112,6 +144,11 @@ public class ServerTest {
     }
 
   }
+
+
+
+
+
 
 
 

@@ -54,15 +54,11 @@ public class Server {
 
             clientList.add(clientSocket);
 
-
-
             for (Display display : displayList) {
 
               display.show("Connected");
 
             }
-
-
 
           }
 
