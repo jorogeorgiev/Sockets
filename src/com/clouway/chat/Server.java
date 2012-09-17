@@ -13,13 +13,16 @@ import java.util.List;
  * Created by Georgi Georgiev , Clouway Ltd.
  * email: georgi.hristov@clouway.com
  */
+
+// Abandon all hope, ye who enter here.
 public class Server {
 
-  private List<Socket> clientList = Lists.newLinkedList();
+  private volatile List<Socket> clientList = Lists.newLinkedList();
 
   private List<Display> displayList;
 
   private ServerSocket serversocket;
+
 
   public Server(List<Display> displayList) {
 
@@ -27,7 +30,8 @@ public class Server {
 
   }
 
-  public void startServer(int port) throws IOException {
+
+  public synchronized void startServer(int port) throws IOException, InterruptedException {
 
     serversocket = new ServerSocket(port);
 
@@ -37,22 +41,15 @@ public class Server {
 
       public void run() {
 
-
-        Socket clientSocket;
-
         try {
 
           while (!Thread.currentThread().isInterrupted()) {
 
-            clientSocket = serversocket.accept();
+           Socket clientSocket = serversocket.accept();
+
+            clientSocket.setSoTimeout(1000);
 
             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
-
-            writer.println("There are " + clientList.size() +  " connected users.");
-
-            writer.flush();
-
-            clientList.add(clientSocket);
 
             for (Display display : displayList) {
 
@@ -60,14 +57,33 @@ public class Server {
 
             }
 
+            writer.println("There are " + clientList.size() + " connected users.");
+
+            writer.flush();
+
+
+            for (Socket socket : clientList) {
+
+              PrintWriter socketWriter = new PrintWriter(socket.getOutputStream());
+
+              socketWriter.println("Client #" + (clientList.size() + 1) + " has just connected");
+
+              socketWriter.flush();
+
+            }
+
+            clientList.add(clientSocket);
+
           }
 
-        } catch (IOException ignored) { }
+        } catch (IOException ignored) {
+        }
 
 
       }
     }).start();
 
+    Thread.sleep(100);
 
   }
 

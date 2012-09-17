@@ -1,6 +1,7 @@
 package com.clouway.chat;
 
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,8 +14,6 @@ import java.util.Scanner;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * Created by Georgi Georgiev , Clouway Ltd.
@@ -25,22 +24,21 @@ public class ServerTest {
 
   private List<Display> displayList = new ArrayList<Display>();
 
-  private Display mockedDisplay;
-
-  private String receivedMessage;
+  private StringBuilder receivedMessage;
 
   private Server server;
 
-  private List<Socket> clientList ;
-
+  private List<Socket> clientList;
 
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws IOException, InterruptedException {
 
     clientList = Lists.newLinkedList();
 
-    mockedDisplay = mock(Display.class);
+    receivedMessage = new StringBuilder();
+
+    Display mockedDisplay = mock(Display.class);
 
     displayList.add(mockedDisplay);
 
@@ -50,67 +48,74 @@ public class ServerTest {
   }
 
 
-
-
-
-
-  @Test
-  public void serverAcceptMultiConnections() throws IOException, InterruptedException {
-
-    initializeClients(2);
-
-    verify(mockedDisplay,times(2)).show("Connected");
+  @After
+  public void tearDown() throws IOException {
 
     server.stopServer();
 
   }
-
-
 
   @Test
   public void serverNotifiesThereAreNoPreviousConnections() throws IOException, InterruptedException {
 
     initializeClients(1);
 
-    checkMessageOfClient(0);
+    assertClientIsNotifiedWith(1, "There are " + 0 + " connected users.");
 
-    Thread.sleep(2000);
+  }
 
-    assertThat(receivedMessage, is("There are 0 connected users."));
+  @Test
+  public void serverNotifiesClientAboutTotalConnectedClients() throws IOException, InterruptedException {
 
-    server.stopServer();
+    initializeClients(5);
+
+    assertClientIsNotifiedWith(5, "There are " + 4 + " connected users.");
+
   }
 
 
- @Test
- public void serverNotifiesClientAboutTotalCountConnectedCLients() throws IOException, InterruptedException {
 
-   initializeClients(5);
+  @Test
+  public void serverNotifiesParticipantsOnNewConnectedClient() throws IOException, InterruptedException {
 
-   checkMessageOfClient(3);
+    initializeClients(5);
 
-   Thread.sleep(2000);
+    assertClientIsNotifiedWith(2, "Client #" + 5 + " has just connected");
 
-   assertThat(receivedMessage, is("There are 3 connected users."));
+    assertClientIsNotifiedWith(3, "Client #" + 5 + " has just connected");
+
+    assertClientIsNotifiedWith(4, "Client #" + 5 + " has just connected");
+
+
+  }
+
+  @Test
+  public void serverStopsClientStopsToo() throws IOException, InterruptedException {
+
+   initializeClients(2);
 
    server.stopServer();
 
- }
+   assertClientIsNotifiedWith(2,"Connection Lost");
 
 
-  private void initializeClients(int clientNumber) throws IOException {
+  }
 
-    for(int i=0;i<clientNumber;i++){
 
-      Socket client  = new Socket("localhost",1910);
 
-      clientList.add(client);
+  private void initializeClients(int clientsNumber) throws IOException {
+
+    for (int i = 1; i <= clientsNumber; i++) {
+
+      Socket newClient = new Socket("localhost", 1910);
+
+      clientList.add(newClient);
 
     }
 
   }
 
-  private void checkMessageOfClient(final int clientNumber){
+  private void assertClientIsNotifiedWith(final int clientNumber, String sentMessage) throws InterruptedException {
 
     new Thread(new Runnable() {
 
@@ -120,20 +125,28 @@ public class ServerTest {
 
         try {
 
-          Scanner scan = new Scanner(clientList.get(clientNumber).getInputStream());
+          Scanner scan = new Scanner(clientList.get(clientNumber-1).getInputStream());
 
-          while(scan.hasNext()){
+          while (scan.hasNextLine()) {
 
-            receivedMessage=scan.nextLine();
+            receivedMessage.delete(0,receivedMessage.length());
+
+            receivedMessage.append(scan.nextLine());
 
           }
+          receivedMessage.delete(0,receivedMessage.length());
+
+          receivedMessage.append("Connection Lost");
+
 
         } catch (IOException ignored) {}
 
       }
     }).start();
 
+    Thread.sleep(50);
 
+    assertThat(receivedMessage.toString(), is(sentMessage));
 
   }
 

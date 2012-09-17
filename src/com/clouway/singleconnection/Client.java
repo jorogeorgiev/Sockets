@@ -31,8 +31,6 @@ public class Client {
 
     clientSocket = new Socket(hostAddress, serverPort);
 
-    clientSocket.setSoTimeout(1000);
-
     new Thread(new Runnable() {
 
       @Override
@@ -42,8 +40,6 @@ public class Client {
 
           scanner = new Scanner(clientSocket.getInputStream());
 
-          while (scanner.ioException() == null) {
-
             while (scanner.hasNextLine()) {
 
               for (Display display : displayList) {
@@ -51,8 +47,9 @@ public class Client {
                 display.show(scanner.nextLine());
 
               }
+
             }
-          }
+
 
           for (Display display : displayList) {
 
