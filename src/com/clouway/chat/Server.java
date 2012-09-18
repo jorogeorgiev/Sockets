@@ -1,12 +1,13 @@
 package com.clouway.chat;
 
 
-import com.google.common.collect.Lists;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -14,24 +15,28 @@ import java.util.List;
  * email: georgi.hristov@clouway.com
  */
 
-// Abandon all hope, ye who enter here.
 public class Server {
 
-  private volatile List<Socket> clientList = Lists.newLinkedList();
+  private final List<Socket> clientList = Collections.synchronizedList(new LinkedList<Socket>());
 
   private List<Display> displayList;
 
   private ServerSocket serversocket;
 
+  private ClientMessages messages;
 
-  public Server(List<Display> displayList) {
+
+  public Server(List<Display> displayList,ClientMessages messages) {
 
     this.displayList = displayList;
+
+    this.messages = messages;
 
   }
 
 
   public synchronized void startServer(int port) throws IOException, InterruptedException {
+
 
     serversocket = new ServerSocket(port);
 
@@ -39,54 +44,108 @@ public class Server {
 
       @Override
 
-      public void run() {
+      public synchronized void run() {
 
         try {
 
           while (!Thread.currentThread().isInterrupted()) {
 
-           Socket clientSocket = serversocket.accept();
+            Socket clientSocket = serversocket.accept();
 
-            clientSocket.setSoTimeout(1000);
-
-            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
+            clientSocket.setSoTimeout(250);
 
             for (Display display : displayList) {
 
-              display.show("Connected");
+              display.show(messages.onClientConnect(clientList.size()+1));
 
             }
 
-            writer.println("There are " + clientList.size() + " connected users.");
+            writeMessage(clientSocket,messages.displayTotalClients(clientList.size()));
 
-            writer.flush();
+            synchronized (clientList) {
 
+              notifyClients(messages.onClientConnect(clientList.size()+1));
 
-            for (Socket socket : clientList) {
-
-              PrintWriter socketWriter = new PrintWriter(socket.getOutputStream());
-
-              socketWriter.println("Client #" + (clientList.size() + 1) + " has just connected");
-
-              socketWriter.flush();
-
+              clientList.add(clientSocket);
             }
-
-            clientList.add(clientSocket);
 
           }
 
-        } catch (IOException ignored) {
-        }
-
-
+        } catch (IOException ignored) { }
       }
     }).start();
 
-    Thread.sleep(100);
+
+    new Thread(new Runnable() {
+
+      @Override
+      public synchronized void run() {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException ignored) {
+
+        }
+
+        while (!Thread.currentThread().isInterrupted()) {
+
+
+          synchronized (clientList) {
+
+            for (Socket socket : clientList) {
+
+              try {
+
+                if (socket.getInputStream().read() == -1) {
+
+                  clientList.remove(socket);
+
+                  notifyClients(messages.onClientDisconnect());
+
+                  notifyClients(messages.displayTotalClients(clientList.size()));
+
+                }
+              } catch (SocketException ignored) {
+              } catch (IOException ignored) {
+              }
+            }
+
+
+            try {
+
+              Thread.sleep(250);
+            } catch (InterruptedException e) {
+              System.out.println("Something , somewhere , somehow went terrible wrong");
+            }
+
+          }
+        }
+
+      }
+
+    }).start();
 
   }
 
+  private void writeMessage(Socket socket, String message) throws IOException {
+
+    PrintWriter socketWriter = new PrintWriter(socket.getOutputStream());
+
+    socketWriter.println(message);
+
+    socketWriter.flush();
+
+  }
+
+
+  private synchronized void notifyClients(String message) throws IOException {
+
+    for (Socket socket : clientList) {
+
+      writeMessage(socket, message);
+
+    }
+
+  }
 
   public void stopServer() throws IOException {
 

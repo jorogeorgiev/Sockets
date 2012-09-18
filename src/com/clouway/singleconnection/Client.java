@@ -42,18 +42,22 @@ public class Client {
 
             while (scanner.hasNextLine()) {
 
-              for (Display display : displayList) {
+             /* for (Display display : displayList) {
 
                 display.show(scanner.nextLine());
 
-              }
+              }*/
+              System.out.println(scanner.nextLine());
 
             }
+
 
 
           for (Display display : displayList) {
 
             display.show("Connection Lost");
+
+
 
           }
 

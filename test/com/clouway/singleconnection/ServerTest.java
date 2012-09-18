@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
  * email: georgi.hristov@clouway.com
  */
 public class ServerTest {
+  private final String onClientConnectMessage = "Client Connected on Server 1";
 
   private final int SERVER_PORT = 1910;
   
@@ -52,11 +53,12 @@ public class ServerTest {
   @Test
   public void serverNotifiesOnConnectedClient() throws IOException {
 
-    startServer(SERVER_PORT , "", displayList);
+
+    startServer(SERVER_PORT , displayList, "" , onClientConnectMessage);
 
     new Socket(SERVER_ADDRESS,SERVER_PORT);
 
-    verify(mockedDisplay).show("Client Connected");
+    verify(mockedDisplay).show(onClientConnectMessage);
 
     server.stopServer();
 
@@ -69,7 +71,7 @@ public class ServerTest {
 
     String serverMessage = "Hello "+ format.format(december(31,2012));
 
-    startServer(SERVER_PORT, serverMessage,new ArrayList<Display>());
+    startServer(SERVER_PORT,new ArrayList<Display>(),serverMessage, onClientConnectMessage);
 
     final StringBuilder receivedMessage = new StringBuilder();
 
@@ -104,17 +106,6 @@ public class ServerTest {
 
   }
 
-  @Test
-  public void serverClosesServerDisplaysOnStop() throws IOException {
-
-    startServer(SERVER_PORT,"",displayList);
-
-    server.stopServer();
-
-    verify(mockedDisplay).closeDisplay();
-
-  }
-
   private Date december(int day, int year) {
 
     Calendar calendarDate = Calendar.getInstance();
@@ -125,9 +116,9 @@ public class ServerTest {
 
   }
 
-  private void startServer(int port , String message , List<Display> displayList) throws IOException {
+  private void startServer(int port , List<Display> displayList,String... message) throws IOException {
 
-    server = new Server(port,message,displayList);
+    server = new Server(port,displayList,message);
 
     server.startServer();
 

@@ -67,7 +67,7 @@ public class ClientTest {
 
   private void startServer(String message) throws IOException {
 
-    server = new Server(HOST_PORT, message, new ArrayList<Display>());
+  //  server = new Server(HOST_PORT, new ArrayList<Display>(),message,onClientConnectMessage);
 
     server.startServer();
 

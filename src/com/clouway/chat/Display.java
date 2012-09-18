@@ -9,7 +9,5 @@ public interface Display {
 
   void show(String message);
 
-  void closeDisplay();
-
 
 }

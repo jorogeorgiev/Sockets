@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 import static org.hamcrest.core.Is.is;
@@ -26,6 +27,8 @@ public class ServerTest {
 
   private StringBuilder receivedMessage;
 
+  private ClientMessages messages;
+
   private Server server;
 
   private List<Socket> clientList;
@@ -36,15 +39,17 @@ public class ServerTest {
 
     clientList = Lists.newLinkedList();
 
+    messages = new ClientMessages();
+
     receivedMessage = new StringBuilder();
 
     Display mockedDisplay = mock(Display.class);
 
     displayList.add(mockedDisplay);
 
-    server = new Server(displayList);
+    server = new Server(displayList,messages);
 
-    server.startServer(1910);
+    server.startServer(1950);
   }
 
 
@@ -103,11 +108,12 @@ public class ServerTest {
 
 
 
+
   private void initializeClients(int clientsNumber) throws IOException {
 
     for (int i = 1; i <= clientsNumber; i++) {
 
-      Socket newClient = new Socket("localhost", 1910);
+      Socket newClient = new Socket("localhost", 1950);
 
       clientList.add(newClient);
 

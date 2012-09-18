@@ -1,4 +1,7 @@
 package com.clouway.singleconnection;
+
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -15,19 +18,23 @@ public class Server {
 
   private List<Display> displayList;
 
-  private String serverMessage;
+  private List<String> serverMessage = Lists.newArrayList();
 
   private ServerSocket serverSocket;
 
   private Socket clientSocket;
 
-  public Server(int portNumber, String serverMessage, List<Display> displayList) {
+  public Server(int portNumber, List<Display> displayList, String... serverMessages) {
 
     this.portNumber = portNumber;
 
-    this.serverMessage = serverMessage;
-
     this.displayList = displayList;
+
+    for (String string : serverMessages) {
+
+      serverMessage.add(string);
+
+    }
 
   }
 
@@ -46,19 +53,21 @@ public class Server {
 
           for (Display display : displayList) {
 
-            display.show("Client Connected");
+            display.show(serverMessage.get(1));
 
           }
 
           PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
 
-          writer.println(serverMessage);
+          writer.println(serverMessage.get(0));
 
           writer.flush();
 
+
         } catch (IOException io) {
 
-          System.out.println("Dead Socket");
+
+          System.out.println("There were no clients on the server!");
 
         }
 
@@ -70,13 +79,13 @@ public class Server {
 
   public void stopServer() throws IOException {
 
-    serverSocket.close();
+    if(clientSocket!=null){
 
-    for (Display display : displayList) {
-
-      display.closeDisplay();
+      System.out.println("A mother fucker was disconnected");
 
     }
+
+    serverSocket.close();
 
   }
 
