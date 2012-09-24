@@ -1,6 +1,8 @@
 package com.clouway.singleconnection;
 
 
+import javax.swing.*;
+
 /**
  * Created by Georgi Georgiev , Clouway Ltd.
  * email: georgi.hristov@clouway.com
@@ -8,7 +10,5 @@ package com.clouway.singleconnection;
 public interface Display {
 
   void show(String message);
-
-  void closeDisplay();
 
 }

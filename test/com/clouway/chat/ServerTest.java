@@ -65,7 +65,7 @@ public class ServerTest {
 
     initializeClients(1);
 
-    assertClientIsNotifiedWith(1, "There are " + 0 + " connected users.");
+    assertClientIsNotifiedWith(1, messages.displayTotalClients(0));
 
   }
 
@@ -74,7 +74,7 @@ public class ServerTest {
 
     initializeClients(5);
 
-    assertClientIsNotifiedWith(5, "There are " + 4 + " connected users.");
+    assertClientIsNotifiedWith(5, messages.displayTotalClients(4));
 
   }
 
@@ -85,11 +85,11 @@ public class ServerTest {
 
     initializeClients(5);
 
-    assertClientIsNotifiedWith(2, "Client #" + 5 + " has just connected");
+    assertClientIsNotifiedWith(2, messages.onClientConnect(5));
 
-    assertClientIsNotifiedWith(3, "Client #" + 5 + " has just connected");
+    assertClientIsNotifiedWith(3, messages.onClientConnect(5));
 
-    assertClientIsNotifiedWith(4, "Client #" + 5 + " has just connected");
+    assertClientIsNotifiedWith(4, messages.onClientConnect(5));
 
 
   }
@@ -101,7 +101,7 @@ public class ServerTest {
 
    server.stopServer();
 
-   assertClientIsNotifiedWith(2,"Connection Lost");
+   assertClientIsNotifiedWith(2,messages.onServerStop());
 
 
   }
@@ -142,7 +142,7 @@ public class ServerTest {
           }
           receivedMessage.delete(0,receivedMessage.length());
 
-          receivedMessage.append("Connection Lost");
+          receivedMessage.append(messages.onServerStop());
 
 
         } catch (IOException ignored) {}

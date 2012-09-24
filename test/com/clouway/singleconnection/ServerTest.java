@@ -1,18 +1,14 @@
 package com.clouway.singleconnection;
 
-import com.google.common.collect.Lists;
+import com.clouway.singleconnection.server.Server;
+import com.clouway.singleconnection.server.ServerMessages;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.Socket;
 
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -24,54 +20,56 @@ import static org.mockito.Mockito.verify;
  * email: georgi.hristov@clouway.com
  */
 public class ServerTest {
-  private final String onClientConnectMessage = "Client Connected on Server 1";
+
+  private ServerMessages messages;
 
   private final int SERVER_PORT = 1910;
   
   private final String SERVER_ADDRESS = "localhost";
 
   private Server server;
-  
-  private Display mockedDisplay;
 
-  private  List<Display> displayList;
+  private Dispatcher mockedDispatcher;
 
 
 
   @Before
-  public void setUp(){
+  public void setUp() throws IOException {
 
-    mockedDisplay = mock(Display.class);
+    mockedDispatcher = mock(Dispatcher.class);
 
-    displayList = Lists.newArrayList();
+    messages = new ServerMessages();
 
-    displayList.add(mockedDisplay);
+    startServer(SERVER_PORT,mockedDispatcher ,messages);
 
   }
 
 
+
+
+  @After
+  public void tearDown() throws IOException {
+
+     server.stop();
+
+
+  }
   @Test
-  public void serverNotifiesOnConnectedClient() throws IOException {
-
-
-    startServer(SERVER_PORT , displayList, "" , onClientConnectMessage);
+  public void serverNotifiesOnConnectedClient() throws IOException, InterruptedException {
 
     new Socket(SERVER_ADDRESS,SERVER_PORT);
 
-    verify(mockedDisplay).show(onClientConnectMessage);
+    Thread.sleep(100);
 
-    server.stopServer();
+    verify(mockedDispatcher).dispatchMessage(messages.clientConnected(), server);
 
   }
 
+
+
+
   @Test
   public void serverSendsHelloAndDateToClient() throws IOException, InterruptedException {
-
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-
-    String serverMessage = "Hello "+ format.format(december(31,2012));
-
-    startServer(SERVER_PORT,new ArrayList<Display>(),serverMessage, onClientConnectMessage);
 
     final StringBuilder receivedMessage = new StringBuilder();
 
@@ -98,29 +96,20 @@ public class ServerTest {
       }
     }).start();
 
-    Thread.sleep(1000);
+    Thread.sleep(100);
 
-    assertThat(receivedMessage.toString(), is(serverMessage));
-
-    server.stopServer();
+    assertThat(receivedMessage.toString(), is(messages.displayServerMessage()));
 
   }
 
-  private Date december(int day, int year) {
 
-    Calendar calendarDate = Calendar.getInstance();
+  private void startServer(int port , Dispatcher serverDispatcher,ServerMessages messages) throws IOException {
 
-    calendarDate.set(year, Calendar.DECEMBER, day);
+    server = new Server(port,messages);
 
-    return calendarDate.getTime();
+    server.addServeDispatcher(serverDispatcher);
 
-  }
-
-  private void startServer(int port , List<Display> displayList,String... message) throws IOException {
-
-    server = new Server(port,displayList,message);
-
-    server.startServer();
+    server.start();
 
   }
 

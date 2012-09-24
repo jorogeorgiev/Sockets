@@ -48,7 +48,7 @@ public class Server {
 
         try {
 
-          while (!Thread.currentThread().isInterrupted()) {
+          while (true) {
 
             Socket clientSocket = serversocket.accept();
 
@@ -86,7 +86,7 @@ public class Server {
 
         }
 
-        while (!Thread.currentThread().isInterrupted()) {
+        while (Thread.currentThread().isAlive()) {
 
 
           synchronized (clientList) {

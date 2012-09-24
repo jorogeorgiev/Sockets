@@ -1,11 +1,13 @@
 package com.clouway.singleconnection;
 
+import com.clouway.singleconnection.server.Server;
+import com.clouway.singleconnection.server.ServerMessages;
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -18,7 +20,7 @@ import static org.mockito.Mockito.verify;
  */
 public class ClientTest {
 
-  private final String SERVER_MESSAGE = "Hello";
+  private ServerMessages messages;
 
   private final int HOST_PORT = 1910;
 
@@ -31,12 +33,13 @@ public class ClientTest {
 
   @Before
   public void setUp() throws IOException, InterruptedException {
+    messages = new ServerMessages();
 
     mockedDisplay = mock(Display.class);
 
     displayList.add(mockedDisplay);
 
-    startServer(SERVER_MESSAGE);
+    startServer();
 
     String HOST_ADDRESS = "localhost";
 
@@ -44,40 +47,46 @@ public class ClientTest {
 
   }
 
+  @After
+  public void tearDown() throws IOException {
+
+    server.stop();
+
+  }
+
+
 
   @Test
   public void clientReceivesMessagesFromServer() throws IOException, InterruptedException {
 
-    verify(mockedDisplay).show(SERVER_MESSAGE);
-
-    server.stopServer();
+    verify(mockedDisplay).show(messages.displayServerMessage());
 
   }
 
   @Test
   public void clientNotifiesOnServerStop() throws IOException, InterruptedException {
 
-    server.stopServer();
+    server.stop();
 
-    Thread.sleep(5000);
+    Thread.sleep(500);
 
     verify(mockedDisplay, times(1)).show("Connection Lost");
 
   }
 
-  private void startServer(String message) throws IOException {
+  private void startServer() throws IOException {
 
-  //  server = new Server(HOST_PORT, new ArrayList<Display>(),message,onClientConnectMessage);
+   // server = new Server(HOST_PORT,new ArrayList<Display>(),messages);
 
-    server.startServer();
+    server.start();
 
   }
 
   private void connectClientTo(String hostAddress, int port, List<Display> displayList) throws IOException, InterruptedException {
 
-    Client client = new Client(displayList);
+//    Client client = new Client(hostAddress, port,displayList);
 
-    client.connectTo(hostAddress, port);
+//    client.start();
 
   }
 

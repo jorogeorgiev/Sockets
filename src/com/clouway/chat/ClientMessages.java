@@ -31,6 +31,12 @@ public class ClientMessages {
 
   }
 
+  public String onServerStop(){
+
+    return "Connection Lost";
+
+  }
+
 
 
 
